@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kinetic Car Clock</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="flair-cinematic">
+    <div class="snowfall" aria-hidden="true"></div>
+    <div class="clock-container">
+        <div class="flair-controls" role="group" aria-label="Screen flair">
+            <button class="flair-btn active" data-flair="cinematic">Option 1: Cinematic Glow</button>
+            <button class="flair-btn" data-flair="neon">Option 2: Neon Grid</button>
+        </div>
+
+        <div class="clock-display">
+            <div class="digit-display" id="hour-tens"></div>
+            <div class="digit-display" id="hour-ones"></div>
+            <div class="separator-container">
+                <div class="separator-dot"></div>
+                <div class="separator-dot"></div>
+            </div>
+            <div class="digit-display" id="min-tens"></div>
+            <div class="digit-display" id="min-ones"></div>
+        </div>
+
+        <div class="time-info">
+            <span id="ampm">AM</span>
+        </div>
+    </div>
+
+    <svg id="car-svg" style="display:none;" viewBox="0 0 60 40" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <g id="car-icon">
+                <rect x="5" y="15" width="50" height="15" rx="3" fill="#ffe100" stroke="#ffb300" stroke-width="1"/>
+                <rect x="8" y="8" width="16" height="8" rx="2" fill="#ffe100" stroke="#ffb300" stroke-width="1"/>
+                <rect x="36" y="8" width="16" height="8" rx="2" fill="#ffe100" stroke="#ffb300" stroke-width="1"/>
+                <circle cx="12" cy="32" r="4" fill="#fff2a6" stroke="#ffb300" stroke-width="1"/>
+                <circle cx="48" cy="32" r="4" fill="#fff2a6" stroke="#ffb300" stroke-width="1"/>
+            </g>
+        </defs>
+    </svg>
+
+    <script src="script.js"></script>
+</body>
+</html>
