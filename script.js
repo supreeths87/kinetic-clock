@@ -5,6 +5,25 @@ class CarClock {
         this.carWidth = 34;
         this.carHeight = 34;
         this.currentTime = '';
+        this.motionPreset = 'cinematicSlow';
+        this.motionPresets = {
+            normal: {
+                enterStepDelay: 65,
+                exitStepDelay: 45,
+                boardDelay: 220,
+                unboardDelay: 260,
+                moveDuration: 1100,
+                parkedDriverVisibleDelay: 850
+            },
+            cinematicSlow: {
+                enterStepDelay: 120,
+                exitStepDelay: 95,
+                boardDelay: 420,
+                unboardDelay: 460,
+                moveDuration: 2100,
+                parkedDriverVisibleDelay: 1450
+            }
+        };
 
         this.containers = {
             hourTens: document.getElementById('hour-tens'),
@@ -82,6 +101,7 @@ class CarClock {
         const container = this.containers[containerKey];
         const pattern = this.digitPatterns[newDigit] || [];
         const targetPositions = new Set(pattern.map(pos => pos.join(',')));
+        const timing = this.motionPresets[this.motionPreset] || this.motionPresets.normal;
 
         const moveQueue = [];
         for (let row = 0; row < this.gridRows; row++) {
@@ -96,50 +116,85 @@ class CarClock {
 
         const entering = moveQueue.filter(item => item.isTarget);
         const exiting = moveQueue.filter(item => !item.isTarget && !item.carEl.classList.contains('inactive'));
-        const enterStepDelay = 65;
-        const exitStepDelay = 45;
+        const enterStepDelay = timing.enterStepDelay;
+        const exitStepDelay = timing.exitStepDelay;
+        const boardDelay = timing.boardDelay;
+        const unboardDelay = timing.unboardDelay;
+        const moveDuration = timing.moveDuration;
+        const parkedDriverVisibleDelay = timing.parkedDriverVisibleDelay;
 
         entering.forEach((item, index) => {
             const delay = index * enterStepDelay;
             const { carEl, positions } = item;
 
-            if (carEl._hideTimer) {
-                clearTimeout(carEl._hideTimer);
-                carEl._hideTimer = null;
-            }
+            this.clearCarTimers(carEl);
 
-            carEl.style.transitionDelay = `${delay}ms, ${delay}ms, 0ms`;
-            carEl.classList.remove('inactive', 'parking');
+            carEl.classList.remove('inactive', 'parking', 'driver-inside');
+            carEl.classList.add('driver-outside');
 
-            requestAnimationFrame(() => {
-                carEl.style.left = positions.cellX + 'px';
-                carEl.style.top = positions.cellY + 'px';
-            });
+            carEl._departTimer = setTimeout(() => {
+                carEl.classList.remove('driver-outside');
+                carEl.classList.add('driver-inside');
+                carEl.style.transitionDelay = `0ms, 0ms, 0ms`;
+
+                requestAnimationFrame(() => {
+                    carEl.style.left = positions.cellX + 'px';
+                    carEl.style.top = positions.cellY + 'px';
+                });
+
+                carEl._departTimer = null;
+            }, delay + boardDelay);
         });
 
         exiting.forEach((item, index) => {
             const delay = index * exitStepDelay;
             const { carEl, positions } = item;
 
-            if (carEl._hideTimer) {
-                clearTimeout(carEl._hideTimer);
-            }
+            this.clearCarTimers(carEl);
 
-            carEl.style.transitionDelay = `${delay}ms, ${delay}ms, 0ms`;
-            carEl.classList.add('parking');
-            carEl.classList.remove('inactive');
+            carEl.classList.remove('inactive', 'driver-inside');
+            carEl.classList.add('driver-outside');
 
-            requestAnimationFrame(() => {
-                carEl.style.left = positions.parkX + 'px';
-                carEl.style.top = positions.parkY + 'px';
-            });
+            carEl._departTimer = setTimeout(() => {
+                carEl.classList.remove('driver-outside');
+                carEl.classList.add('driver-inside', 'parking');
+                carEl.style.transitionDelay = `0ms, 0ms, 0ms`;
 
-            carEl._hideTimer = setTimeout(() => {
-                carEl.classList.remove('parking');
-                carEl.classList.add('inactive');
-                carEl._hideTimer = null;
-            }, delay + 1100);
+                requestAnimationFrame(() => {
+                    carEl.style.left = positions.parkX + 'px';
+                    carEl.style.top = positions.parkY + 'px';
+                });
+
+                carEl._arriveTimer = setTimeout(() => {
+                    carEl.classList.remove('driver-inside', 'parking');
+                    carEl.classList.add('driver-outside');
+
+                    carEl._hideTimer = setTimeout(() => {
+                        carEl.classList.add('inactive');
+                        carEl._hideTimer = null;
+                    }, parkedDriverVisibleDelay);
+
+                    carEl._arriveTimer = null;
+                }, moveDuration);
+
+                carEl._departTimer = null;
+            }, delay + unboardDelay);
         });
+    }
+
+    clearCarTimers(carEl) {
+        if (carEl._departTimer) {
+            clearTimeout(carEl._departTimer);
+            carEl._departTimer = null;
+        }
+        if (carEl._arriveTimer) {
+            clearTimeout(carEl._arriveTimer);
+            carEl._arriveTimer = null;
+        }
+        if (carEl._hideTimer) {
+            clearTimeout(carEl._hideTimer);
+            carEl._hideTimer = null;
+        }
     }
 
     defineSegmentCells() {
@@ -183,7 +238,7 @@ class CarClock {
             for (let col = 0; col < this.gridCols; col++) {
                 const posKey = `${row},${col}`;
                 const carEl = document.createElement('div');
-                carEl.className = 'car-container inactive';
+                carEl.className = 'car-container inactive driver-outside';
                 carEl.dataset.grid = posKey;
                 const orientation = this.getCarOrientation(row, col);
                 carEl.dataset.orientation = orientation;
@@ -197,7 +252,12 @@ class CarClock {
                 svg.setAttribute('class', 'car-svg');
                 svg.innerHTML = this.getCarSvgMarkup(orientation);
 
+                const driver = document.createElement('div');
+                driver.className = 'driver-figure';
+                driver.innerHTML = '<span class="driver-head"></span><span class="driver-body"></span>';
+
                 carEl.appendChild(svg);
+                carEl.appendChild(driver);
                 container.appendChild(carEl);
                 this.cars[containerKey][posKey] = carEl;
             }

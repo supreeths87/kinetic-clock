@@ -184,8 +184,8 @@ body.flair-neon #ampm {
     position: absolute;
     width: 34px;
     height: 34px;
-    transition: left 1.05s cubic-bezier(0.22, 0.9, 0.3, 1),
-                top 1.05s cubic-bezier(0.22, 0.9, 0.3, 1),
+    transition: left 2.1s cubic-bezier(0.22, 0.9, 0.3, 1),
+                top 2.1s cubic-bezier(0.22, 0.9, 0.3, 1),
                 opacity 0.25s ease-in-out;
 }
 
@@ -193,6 +193,59 @@ body.flair-neon #ampm {
     width: 100%;
     height: 100%;
     filter: drop-shadow(0 5px 7px rgba(0, 0, 0, 0.36)) contrast(1.04) saturate(1.02);
+}
+
+.driver-figure {
+    position: absolute;
+    width: 10px;
+    height: 18px;
+    opacity: 0;
+    transform: translateY(2px) scale(0.94);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.driver-head {
+    position: absolute;
+    top: 0;
+    left: 2px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ffd5b2;
+    box-shadow: 0 0 4px rgba(255, 213, 178, 0.45);
+}
+
+.driver-body {
+    position: absolute;
+    top: 6px;
+    left: 1px;
+    width: 8px;
+    height: 11px;
+    border-radius: 4px;
+    background: linear-gradient(180deg, #34455f 0%, #1f2a3d 100%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.car-container.driver-outside .driver-figure {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+}
+
+.car-container.driver-inside .driver-figure {
+    opacity: 0;
+    transform: translateY(2px) scale(0.9);
+}
+
+.car-container[data-orientation='horizontal'] .driver-figure {
+    left: -10px;
+    top: 9px;
+}
+
+.car-container[data-orientation='vertical'] .driver-figure {
+    left: 25px;
+    top: 6px;
 }
 
 .separator-container {
